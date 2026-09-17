@@ -29,6 +29,12 @@ Route::post('/logout', [LoginController::class, 'destroy'])
     ->middleware('auth')
     ->name('logout');
 
+Route::get('/pos/history', function () {
+    return view('pos.history');
+})
+    ->middleware(['auth', 'role:kasir'])
+    ->name('pos.history');
+
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('categories', CategoryController::class);
     Route::resource('products', ProductController::class);
