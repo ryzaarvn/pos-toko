@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Product;
 use App\Http\Requests\StoreCategoryRequest;
 use Illuminate\Http\Request;
 
@@ -13,11 +14,9 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        
-    $categories = Category::latest()->paginate(10);
-    return view('master-data.category.index', compact('categories'));
+        $categories = Category::withCount('products')->latest()->paginate(10);
 
-
+        return view('master-data.category.index', compact('categories'));
     }
 
     /**

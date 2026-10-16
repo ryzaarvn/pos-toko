@@ -6,6 +6,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\auth\LoginController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\PosController;
+use App\Http\Controllers\ReportController;
 
 Route::get('/', function () {
     return view('welcome');
