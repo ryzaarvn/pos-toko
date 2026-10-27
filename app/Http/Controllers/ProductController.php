@@ -2,45 +2,63 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\UpdateProductRequest;
 use App\Models\Category;
 use App\Models\Product;
-use App\Http\Requests\UpdateProductRequest;
-use App\Http\Requests\StoreProductRequest;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ProductController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    
-public function index(Request $request)
-{
-    $query = Product::with('category');
- 
-    if ($request->filled('search')) {
-        $keyword = $request->search;
-        $query->where(function ($q) use ($keyword) {
-            $q->where('name', 'like', "%{$keyword}%")
-              ->orWhere('code', 'like', "%{$keyword}%");
-        });
+    public function index(Request $request)
+    {
+        $perPageOptions = [10, 25, 50, 100];
+        $validated = $request->validate([
+            'per_page' => ['sometimes', 'integer', Rule::in($perPageOptions)],
+        ], [
+            'per_page.in' => 'Pilih jumlah data per halaman yang tersedia.',
+        ]);
+        $perPage = (int) ($validated['per_page'] ?? $perPageOptions[0]);
+
+        $query = Product::with('category');
+
+        if ($request->filled('search')) {
+            $keyword = $request->search;
+            $query->where(function ($q) use ($keyword) {
+                $q->where('name', 'like', "%{$keyword}%")
+                    ->orWhere('code', 'like', "%{$keyword}%");
+            });
+        }
+
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        if ($request->input('stock_status') === 'menipis') {
+            $query->where('stock', '>', 0)
+                ->where('stock', '<', config('pos.low_stock_threshold'));
+        } elseif ($request->input('stock_status') === 'habis') {
+            $query->where('stock', 0);
+        }
+
+        $products = $query->latest()->paginate($perPage)->withQueryString();
+        $categories = Category::orderBy('name')->get();
+
+        return view('master-data.product.index', compact('products', 'categories', 'perPage', 'perPageOptions'));
     }
- 
-    if ($request->filled('category_id')) {
-        $query->where('category_id', $request->category_id);
-    }
- 
-    $products = $query->latest()->paginate(10)->withQueryString();
-    $categories = Category::orderBy('name')->get();
-    return view('master-data.product.index', compact('products', 'categories'));
-}
+
     /**
      * Show the form for creating a new resource.
      */
     public function create()
     {
-            $categories = Category::orderBy('name')->get();
-    return view('master-data.product.create', compact('categories'));
+        $categories = Category::orderBy('name')->get();
+
+        return view('master-data.product.create', compact('categories'));
     }
 
     /**
@@ -48,9 +66,9 @@ public function index(Request $request)
      */
     public function store(StoreProductRequest $request)
     {
-            Product::create($request->validated());
- 
-    return redirect()->route('products.index')->with('success', 'Produk berhasil ditambahkan.');
+        Product::create($request->validated());
+
+        return redirect()->route('products.index')->with('success', 'Produk berhasil ditambahkan.');
     }
 
     /**
@@ -66,8 +84,9 @@ public function index(Request $request)
      */
     public function edit(Product $product)
     {
-            $categories = Category::orderBy('name')->get();
-            return view('master-data.product.edit', compact('product', 'categories'));
+        $categories = Category::orderBy('name')->get();
+
+        return view('master-data.product.edit', compact('product', 'categories'));
     }
 
     /**
@@ -76,6 +95,7 @@ public function index(Request $request)
     public function update(UpdateProductRequest $request, Product $product)
     {
         $product->update($request->validated());
+
         return redirect()->route('products.index')->with('success', 'Produk berhasil diperbarui.');
     }
 
@@ -85,6 +105,7 @@ public function index(Request $request)
     public function destroy(Product $product)
     {
         $product->delete();
+
         return redirect()->route('products.index')->with('success', 'Produk berhasil dihapus.');
     }
 }

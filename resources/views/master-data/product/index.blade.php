@@ -25,6 +25,20 @@
             </option>
         @endforeach
     </select>
+
+    <select name="stock_status" aria-label="Status Stok" class="rounded-md border-gray-300">
+        <option value="" @selected(request('stock_status', '') === '')>Semua</option>
+        <option value="menipis" @selected(request('stock_status') === 'menipis')>Menipis</option>
+        <option value="habis" @selected(request('stock_status') === 'habis')>Habis</option>
+    </select>
+
+    <select name="per_page" aria-label="Jumlah Data per Halaman" class="rounded-md border-gray-300">
+        @foreach ($perPageOptions as $option)
+            <option value="{{ $option }}" @selected($perPage === $option)>
+                {{ $option }} per halaman
+            </option>
+        @endforeach
+    </select>
  
     <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-md">Cari</button>
     <a href="{{ route('products.index') }}" class="px-4 py-2 text-gray-500">Reset</a>
