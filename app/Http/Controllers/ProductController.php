@@ -76,7 +76,26 @@ class ProductController extends Controller
      */
     public function show(Product $product)
     {
-        //
+        $product->load(['transactionDetails.transaction']);
+
+        $totalTerjual = $product->transactionDetails->sum('qty');
+
+        $riwayat = $product->transactionDetails()
+            ->with('transaction')
+            ->latest()
+            ->take(10)
+            ->get();
+
+        $penjualanHarian = $product->transactionDetails()
+            ->join('transactions', 'transaction_details.transaction_id', '=', 'transactions.id')
+            ->selectRaw('DATE(transactions.created_at) as tanggal, SUM(transaction_details.qty) as total_terjual')
+            ->groupByRaw('DATE(transactions.created_at)')
+            ->orderByDesc('total_terjual')
+            ->orderByDesc('tanggal')
+            ->limit(5)
+            ->get();
+
+        return view('master-data.product.show', compact('product', 'totalTerjual', 'riwayat', 'penjualanHarian'));
     }
 
     /**

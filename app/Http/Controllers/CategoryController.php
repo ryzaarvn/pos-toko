@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
-use App\Models\Product;
 use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
-use Illuminate\Http\Request;
+use App\Models\Category;
 
 class CategoryController extends Controller
 {
@@ -25,7 +23,7 @@ class CategoryController extends Controller
      */
     public function create()
     {
-         return view('master-data.category.create');
+        return view('master-data.category.create');
     }
 
     /**
@@ -33,18 +31,22 @@ class CategoryController extends Controller
      */
     public function store(StoreCategoryRequest $request)
     {
-    Category::create($request->validated());
+        Category::create($request->validated());
 
-    return redirect()
-        ->route('categories.index')
-        ->with('success', 'Kategori berhasil ditambahkan.');
+        return redirect()
+            ->route('categories.index')
+            ->with('success', 'Kategori berhasil ditambahkan.');
     }
+
     /**
      * Display the specified resource.
      */
     public function show(Category $category)
     {
-        //
+        $category->load(['products' => fn ($query) => $query->orderBy('name')]);
+        $totalStock = $category->products->sum('stock');
+
+        return view('master-data.category.show', compact('category', 'totalStock'));
     }
 
     /**
@@ -53,7 +55,8 @@ class CategoryController extends Controller
     public function edit(Category $category)
     {
         $categories = Category::orderBy('name')->get();
-            return view('master-data.category.edit', compact('categories', 'category'));
+
+        return view('master-data.category.edit', compact('categories', 'category'));
     }
 
     /**
@@ -62,6 +65,7 @@ class CategoryController extends Controller
     public function update(UpdateCategoryRequest $request, Category $category)
     {
         $category->update($request->validated());
+
         return redirect()->route('categories.index')->with('success', 'Kategori berhasil diperbarui.');
     }
 
@@ -76,6 +80,7 @@ class CategoryController extends Controller
                 ->with('warning', 'Kategori tidak dapat dihapus karena masih memiliki produk.');
         }
         $category->delete();
+
         return redirect()->route('categories.index')->with('success', 'Kategori berhasil dihapus.');
     }
 }

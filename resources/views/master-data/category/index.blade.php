@@ -56,6 +56,10 @@
 
                                 </td>
                                 <td class="px-4 py-3 text-sm text-center whitespace-nowrap">
+                                    <a href="{{ route('categories.show', $category) }}"
+                                        class="text-gray-600 hover:text-gray-900 mr-2">
+                                        Detail
+                                    </a>
                                     <a href="{{ route('categories.edit', $category) }}"
                                         class="text-indigo-600 hover:text-indigo-900 mr-2">
                                         Ubah
