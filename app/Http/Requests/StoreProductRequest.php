@@ -8,7 +8,7 @@ class StoreProductRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->user()->role === 'admin';
+         return $this->user()?->role === 'admin';
     }
     public function rules(): array
     {

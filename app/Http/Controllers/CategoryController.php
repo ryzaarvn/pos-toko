@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Product;
 use App\Http\Requests\StoreCategoryRequest;
+use App\Http\Requests\UpdateCategoryRequest;
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
@@ -51,15 +52,17 @@ class CategoryController extends Controller
      */
     public function edit(Category $category)
     {
-        //
+        $categories = Category::orderBy('name')->get();
+            return view('master-data.category.edit', compact('categories', 'category'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Category $category)
+    public function update(UpdateCategoryRequest $request, Category $category)
     {
-        //
+        $category->update($request->validated());
+        return redirect()->route('categories.index')->with('success', 'Kategori berhasil diperbarui.');
     }
 
     /**
@@ -67,6 +70,12 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category)
     {
-        //
+        if ($category->products()->exists()) {
+            return redirect()
+                ->route('categories.index')
+                ->with('warning', 'Kategori tidak dapat dihapus karena masih memiliki produk.');
+        }
+        $category->delete();
+        return redirect()->route('categories.index')->with('success', 'Kategori berhasil dihapus.');
     }
 }
